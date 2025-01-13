@@ -1,0 +1,68 @@
+import java.lang.annotation.*;
+import java.lang.reflect.Field;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@interface Validate {
+    Class<?>[] value();
+}
+class StringValidator {
+    public static boolean validate(Object object) {
+        if (object instanceof String) {
+            return ((String) object).length() > 3;
+        }
+        return true;
+    }
+}
+class PositiveNumberValidator {
+    public static boolean validate(Object object) {
+        if (object instanceof Number) {
+            return ((Number) object).doubleValue() > 0;
+        }
+        return true;
+    }
+}
+@Validate({StringValidator.class, PositiveNumberValidator.class})
+class Person {
+    private String name;
+    private int age;
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+    public String getName() {
+        return name;
+    }
+    public int getAge() {
+        return age;
+    }
+}
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Person person = new Person("Ив", 5);
+        validateObject(person);
+    }
+    public static void validateObject(Object object) throws Exception {
+        Class<?> clazz = object.getClass();
+        if (clazz.isAnnotationPresent(Validate.class)) {
+            Validate validateAnnotation = clazz.getAnnotation(Validate.class);
+            Class<?>[] validators = validateAnnotation.value();
+            for (Field field : clazz.getDeclaredFields()) {
+                field.setAccessible(true);
+                Object value = field.get(object);
+                for (Class<?> validatorClass : validators) {
+                    try {
+                        var validateMethod = validatorClass.getMethod("validate", Object.class);
+                        boolean isValid = (boolean) validateMethod.invoke(null, value);
+                        if (!isValid) {
+                            System.out.printf("Поле '%s' не прошло валидацию с %s%n",
+                                    field.getName(), validatorClass.getSimpleName());
+                        }
+                    } catch (NoSuchMethodException e) {
+                        System.out.printf("Валидатор %s не содержит метод validate%n",
+                                validatorClass.getSimpleName());
+                    }
+                }
+            }
+        }
+    }
+}
