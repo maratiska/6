@@ -1,0 +1,36 @@
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
+@interface Default {
+    Class<?> value();
+}
+@Default(value = ExampleService.class)
+class MyClass {
+    @Default(value = String.class)
+    private Object field;
+}
+class ExampleService {
+    public void sayHello() {
+        System.out.println("Привет из ExampleService!");
+    }
+}
+public class Main {
+    public static void main(String[] args) throws Exception {
+        if (MyClass.class.isAnnotationPresent(Default.class)) {
+            Default defaultAnnotation = MyClass.class.getAnnotation(Default.class);
+            System.out.println("Аннотация на уровне класса указывает на: " + defaultAnnotation.value().getName());
+            Object instance = defaultAnnotation.value().getDeclaredConstructor().newInstance();
+            if (instance instanceof ExampleService) {
+                ((ExampleService) instance).sayHello();
+            }
+        }
+        var field = MyClass.class.getDeclaredField("field");
+        if (field.isAnnotationPresent(Default.class)) {
+            Default fieldAnnotation = field.getAnnotation(Default.class);
+            System.out.println("Аннотация на уровне поля указывает на: " + fieldAnnotation.value().getName());
+        }
+    }
+}
