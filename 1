@@ -1,0 +1,34 @@
+import java.lang.annotation.*;
+import java.lang.reflect.*;
+@Retention(RetentionPolicy.RUNTIME) 
+@Target(ElementType.METHOD)         
+@interface Invoke {
+}
+class AnnotationExample {
+    public static void main(String[] args) {
+        Example example = new Example();
+        for (Method method : Example.class.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(Invoke.class)) { 
+                try {
+                    System.out.println("Invoking method: " + method.getName());
+                    method.invoke(example); 
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+class Example {
+    @Invoke
+    public void sayHello() {
+        System.out.println("Hello, world!");
+    }
+    public void notAnnotated() {
+        System.out.println("This method is not annotated.");
+    }
+    @Invoke
+    public void sayGoodbye() {
+        System.out.println("Goodbye, world!");
+    }
+}
