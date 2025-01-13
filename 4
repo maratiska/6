@@ -1,0 +1,46 @@
+import java.lang.annotation.*;
+import java.lang.reflect.Field;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
+@interface ToString {
+    enum Value {YES, NO}
+    Value value() default Value.YES; // Свойство с дефолтным значением YES
+}
+@ToString
+class Person {
+    @ToString(value = ToString.Value.YES)
+    private String name;
+    @ToString(value = ToString.Value.NO)
+    private int age;
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Person person = new Person("Иван", 25);
+        StringBuilder result = new StringBuilder();
+        Class<?> clazz = person.getClass();
+        if (clazz.isAnnotationPresent(ToString.class)) {
+            result.append(clazz.getSimpleName()).append(" {");
+            for (Field field : clazz.getDeclaredFields()) {
+                field.setAccessible(true);
+                if (field.isAnnotationPresent(ToString.class)) {
+                    ToString annotation = field.getAnnotation(ToString.class);
+                    if (annotation.value() == ToString.Value.YES) {
+                        result.append(field.getName())
+                                .append(": ")
+                                .append(field.get(person))
+                                .append(", ");
+                    }
+                }
+            }
+            if (result.toString().endsWith(", ")) {
+                result.setLength(result.length() - 2);
+            }
+            result.append("}");
+        }
+        System.out.println(result.toString());
+    }
+}
