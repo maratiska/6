@@ -1,0 +1,32 @@
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@interface Two {
+    String first(); 
+    int second(); 
+}
+@Two(first = "пупупу", second = 2)
+class ExampleClass {
+    private String message;
+
+    public ExampleClass(String message) {
+        this.message = message;
+    }
+
+    public void displayMessage() {
+        System.out.println(message);
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        ExampleClass example = new ExampleClass("Привет, мир!");
+        example.displayMessage();
+        Class<?> clazz = example.getClass();
+        if (clazz.isAnnotationPresent(Two.class)) {
+            Two annotation = clazz.getAnnotation(Two.class);
+            System.out.println("Аннотация @Two:");
+            System.out.println("first: " + annotation.first());
+            System.out.println("second: " + annotation.second());
+        }
+    }
+}
