@@ -1,0 +1,27 @@
+import java.lang.annotation.*;
+import java.lang.reflect.*;
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME) 
+@interface Cache {
+    String[] value() default {}; 
+}
+@Cache(value = {"user", "session", "data"})
+class CachedClass {
+    public void display() {
+        System.out.println("Метод display() в классе CachedClass.");
+    }
+}
+class CacheDemo {
+    public static void main(String[] args) {
+        Class<CachedClass> clazz = CachedClass.class;
+        if (clazz.isAnnotationPresent(Cache.class)) {
+            Cache cacheAnnotation = clazz.getAnnotation(Cache.class);
+            System.out.println("Аннотация @Cache содержит следующие значения:");
+            for (String value : cacheAnnotation.value()) {
+                System.out.println("- " + value);
+            }
+        } else {
+            System.out.println("Класс CachedClass не аннотирован @Cache.");
+        }
+    }
+}
